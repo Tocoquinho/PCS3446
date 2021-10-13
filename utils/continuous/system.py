@@ -37,7 +37,15 @@ class System:
 
 
     def eventArrival(self, event):
+        # The job is submitted to the system
+        if event.job.states["Submitted"] == -1:
+            event.job.states["Submitted"] = event.time
+
         if self.memory.isAvailable():
+            # The job is accepted and joints the system
+            event.job.start = event.time
+            event.job.states["Joined"] = event.time
+
             # Update CPU execution time
             self.cpu.updateTime(event.time)
 
@@ -66,6 +74,10 @@ class System:
     def eventProcess(self, event):
         # Allocate the CPU to the new job
         self.cpu.allocate(event.job)
+
+        # The CPU starts the job execution
+        event.job.states["Execution"].append([self.cpu.time])
+
         # Send new event to the Queue
         end_time = self.cpu.time + event.job.duration
         return Event("end of process", end_time, event.job)
@@ -74,10 +86,18 @@ class System:
     def eventEndProcess(self, event):
         # Update CPU execution time
         self.cpu.updateTime(event.time)
+
+        # The CPU has finished the job execution
+        event.job.states["Execution"][-1].append(event.time)
+        event.job.executed = event.job.duration
+
         # Free memory
         self.memory.free()
         # Free CPU
         self.cpu.free()
+
+        # The job leaves the system
+        event.job.states["Done"] = self.cpu.time
 
         # Update the job stats
         event.job.updateEndTime(self.cpu.time)

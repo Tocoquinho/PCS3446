@@ -2,13 +2,20 @@ class Job:
     def __init__(self, name, arrival, memory, duration):
         self.name = name
         self.arrival = arrival
-        self.duration = duration
         self.memory = memory
-
+        self.duration = duration
+        
+        self.start = 0
         self.end = 0
+        self.executed = 0
         self.turnaround = 0
         # Turnaround weighted
         self.w = 0
+
+        self.states = {"Submitted": -1,
+                       "Joined": -1,
+                       "Execution": [],
+                       "Done": -1}
 
 
     def updateEndTime(self, time):
@@ -17,7 +24,8 @@ class Job:
         self.w = self.turnaround/self.duration
 
     def print(self):
-        print(f"    {self.name}: {self.arrival}, {self.memory}, {self.duration}, {self.end}, {self.turnaround}, {self.w}")
+        print(f"    {self.name}: {self.arrival}, {self.memory/1e3:.4}k, {self.duration}, {self.start}, {self.end}, {self.executed}, {self.turnaround:.3}, {self.w:.3}")
+        print(self.states)
 
 
 class JobMix:
@@ -44,9 +52,9 @@ class JobMix:
     def print(self):
         self.updateStats()
         print(f"\nJob Mix: [")
-        print("    Name: arrival, memory, duration, end time, turnaround time, weighted turnaround time")
+        print("    Name: arrival, memory, duration, start time, end time, executed time, turnaround time, weighted turnaround time")
         for job in self.list:
             job.print()
         print("]")
-        print(f"Mean Turnaround time: {self.mean_turnaround}")
-        print(f"Mean Weighted Turnaround time: {self.mean_w}")
+        print(f"Mean Turnaround time: {self.mean_turnaround:.3}")
+        print(f"Mean Weighted Turnaround time: {self.mean_w:.3}")
