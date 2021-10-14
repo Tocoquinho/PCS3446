@@ -8,9 +8,9 @@ class Job:
         self.start = 0
         self.end = 0
         self.executed = 0
-        self.turnaround = 0
+        self.turnaround = 0.0
         # Turnaround weighted
-        self.w = 0
+        self.w = 0.0
 
         self.states = {"Submitted": -1,
                        "Joined": -1,
@@ -31,8 +31,8 @@ class Job:
 class JobMix:
     def __init__(self):
         self.list = []
-        self.mean_turnaround = 0
-        self.mean_w = 0
+        self.mean_turnaround = 0.0
+        self.mean_w = 0.0
 
 
     def append(self, job):
@@ -56,5 +56,5 @@ class JobMix:
         for job in self.list:
             job.print()
         print("]")
-        print(f"Mean Turnaround time: {self.mean_turnaround:.3}")
-        print(f"Mean Weighted Turnaround time: {self.mean_w:.3}")
+        print(f"Mean Turnaround time: {self.mean_turnaround:.4}")
+        print(f"Mean Weighted Turnaround time: {self.mean_w:.4}")

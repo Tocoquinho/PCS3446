@@ -1,7 +1,7 @@
-import numpy as np
 from utils.job import Job, JobMix
-from utils.continuous.event import Event, EventQueue, EventQueueAntecipated
-from utils.continuous.system import SystemFIFO, SystemShortest
+from utils.continuous.event import EventQueue, EventQueueAntecipated
+from utils.continuous.system import SystemFIFO, SystemShortest, SystemMultiprogrammedFirstChoice
+from utils.continuous.system import SystemMultiprogrammedBestChoice, SystemMultiprogrammedWorstChoice
 
 def fifoContinuous(job_mix, memory_size = 120e3):
     system = SystemFIFO(memory_size)
@@ -16,6 +16,21 @@ def shortestContinuous(job_mix, memory_size = 120e3):
 def antecipatedContinuous(job_mix, memory_size = 120e3):
     system = SystemFIFO(memory_size)
     eventEngine(job_mix, system, EventQueueAntecipated())
+
+
+def multiprogrammedFirstChoice(job_mix, memory_size = 120e3, time_slice = 0.1):
+    system = SystemMultiprogrammedFirstChoice(memory_size, time_slice)
+    eventEngine(job_mix, system)
+
+
+def multiprogrammedBestChoice(job_mix, memory_size = 120e3, time_slice = 0.1):
+    system = SystemMultiprogrammedBestChoice(memory_size, time_slice)
+    eventEngine(job_mix, system)
+
+
+def multiprogrammedWorstChoice(job_mix, memory_size = 120e3, time_slice = 0.1):
+    system = SystemMultiprogrammedWorstChoice(memory_size, time_slice)
+    eventEngine(job_mix, system)
 
 
 def jobMix1():
@@ -35,8 +50,8 @@ def jobMix1():
 
 def jobMix2():
     j1 = Job("1", 10.00, 30e3, 2)
-    j2 = Job("2", 10.10, 100e3, 1)
-    j3 = Job("3", 10.25, 80e3, 0.25)
+    j2 = Job("2", 10.10, 40e3, 1)
+    j3 = Job("3", 10.25, 50e3, 0.25)
 
     job_mix = JobMix()
     job_mix.append(j1)
@@ -47,11 +62,11 @@ def jobMix2():
 
 
 def jobMix3():
-    j1 = Job("1", 10.0, 30e3, 0.3)
-    j2 = Job("2", 10.2, 100e3, 0.5)
-    j3 = Job("3", 10.4, 80e3, 0.1)
-    j4 = Job("4", 10.5, 30e3, 0.4)
-    j5 = Job("5", 10.8, 100e3, 0.1)
+    j1 = Job("1", 10.0, 30, 0.3)
+    j2 = Job("2", 10.2, 100, 0.5)
+    j3 = Job("3", 10.4, 80, 0.1)
+    j4 = Job("4", 10.5, 30, 0.4)
+    j5 = Job("5", 10.8, 100, 0.1)
 
 
     job_mix = JobMix()
@@ -79,25 +94,28 @@ def eventEngine(job_mix, system, event_queue = EventQueue()):
 
         # Send next event to the system
         event = event_queue.getNextEvent()
-        new_event = system.receiveEvent(event)
+        new_events = system.receiveEvent(event)
 
-        # If the new event is "stop", stop the simulation
-        if new_event == "stop":
-            break
+        for new_event in new_events:
+            # If the new event is "stop", stop the simulation
+            if new_event == "stop":
+                break
 
-        # If there is a new event, add it to the queue
-        if new_event != None:
-            event_queue.addEvent(new_event)
+            # If there is a new event, add it to the queue
+            if new_event != None:
+                event_queue.addEvent(new_event)
 
-        
-        # system.cpu.print()
-        # print("Step Finished!",end="\n")
+
+        system.memory.print()
+
+        system.cpu.print()
+
     job_mix.print()
 
 
 def main():
     job_mix = jobMix3()
-    fifoContinuous(job_mix)
+    multiprogrammedFirstChoice(job_mix, time_slice=0.03)
 
 
 if __name__ == "__main__":
