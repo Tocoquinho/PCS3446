@@ -35,11 +35,12 @@ class EventQueue:
         
 
     def addEvent(self, new_event):
+        index = 0
         for i, event in enumerate(self.queue):
             if event.time > new_event.time:
-                index = i
+                index = i 
                 break
-        self.queue.insert(i, new_event)
+        self.queue.insert(index, new_event)
 
 
     def getNextEvent(self):

@@ -92,10 +92,10 @@ class System:
         event.job.states["Execution"][-1].append(event.time)
         event.job.executed = event.job.duration
 
-        # Free memory
-        self.memory.free(event.job.name)
         # Free CPU
         self.cpu.free()
+        # Free memory
+        self.memory.free(event.job.name)
 
         # The job leaves the system
         event.job.states["Done"] = self.cpu.time
@@ -115,16 +115,16 @@ class System:
 
 
     def updateWaitList(self):
-        pass
-
-class SystemFIFO(System):
-    def updateWaitList(self):
         if len(self.wait_list) > 0:
             new_event = self.wait_list.pop(0)
             new_event.time = self.cpu.time
-            return self.eventArrival(new_event)
-        
+
+            output = self.eventArrival(new_event)
+            if len(output) > 0:
+                return output[0]
         return
+class SystemFIFO(System):
+    pass
 
 class SystemShortest(System):
     def updateWaitList(self):
@@ -132,10 +132,12 @@ class SystemShortest(System):
             self.wait_list.sort(key = lambda event: event.job.duration)
             new_event = self.wait_list.pop(0)
             new_event.time = self.cpu.time
-            return self.eventArrival(new_event)
-        
-        return
 
+            output = self.eventArrival(new_event)
+            if len(output) > 0:
+                return output[0]
+        return
+    
 
 class SystemMultiprogrammed(System):
     def __init__(self, memory_size, time_slice):
@@ -226,10 +228,10 @@ class SystemMultiprogrammed(System):
         event.job.states["Execution"][-1].append(event.time)
         event.job.executed = event.job.duration
 
-        # Free memory
-        self.memory.free(event.job.name)
         # Free CPU
         self.cpu.free()
+        # Free memory
+        self.memory.free(event.job.name)
 
         # The job leaves the system
         event.job.states["Done"] = self.cpu.time
@@ -255,19 +257,19 @@ class SystemMultiprogrammed(System):
 
 
 class SystemMultiprogrammedFirstChoice(SystemMultiprogrammed):
-    def __init__(self, memory_size, time_slice):
+    def __init__(self, memory_size, time_slice, n):
         super().__init__(memory_size, time_slice)
-        self.memory = MemoryMultiprogrammedFirstChoice(memory_size)
+        self.memory = MemoryMultiprogrammedFirstChoice(memory_size, n)
 
 
 class SystemMultiprogrammedBestChoice(SystemMultiprogrammed):
-    def __init__(self, memory_size, time_slice):
+    def __init__(self, memory_size, time_slice, n):
         super().__init__(memory_size, time_slice)
-        self.memory = MemoryMultiprogrammedBestChoice(memory_size)
+        self.memory = MemoryMultiprogrammedBestChoice(memory_size, n)
 
 
 class SystemMultiprogrammedWorstChoice(SystemMultiprogrammed):
-    def __init__(self, memory_size, time_slice):
+    def __init__(self, memory_size, time_slice, n):
         super().__init__(memory_size, time_slice)
-        self.memory = MemoryMultiprogrammedWorstChoice(memory_size)
+        self.memory = MemoryMultiprogrammedWorstChoice(memory_size, n)
 

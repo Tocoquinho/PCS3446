@@ -18,18 +18,18 @@ def antecipatedContinuous(job_mix, memory_size = 120e3):
     eventEngine(job_mix, system, EventQueueAntecipated())
 
 
-def multiprogrammedFirstChoice(job_mix, memory_size = 120e3, time_slice = 0.1):
-    system = SystemMultiprogrammedFirstChoice(memory_size, time_slice)
+def multiprogrammedFirstChoice(job_mix, memory_size = 120e3, time_slice = 0.1, n = 10):
+    system = SystemMultiprogrammedFirstChoice(memory_size, time_slice, n)
     eventEngine(job_mix, system)
 
 
-def multiprogrammedBestChoice(job_mix, memory_size = 120e3, time_slice = 0.1):
-    system = SystemMultiprogrammedBestChoice(memory_size, time_slice)
+def multiprogrammedBestChoice(job_mix, memory_size = 120e3, time_slice = 0.1, n = 10):
+    system = SystemMultiprogrammedBestChoice(memory_size, time_slice, n)
     eventEngine(job_mix, system)
 
 
-def multiprogrammedWorstChoice(job_mix, memory_size = 120e3, time_slice = 0.1):
-    system = SystemMultiprogrammedWorstChoice(memory_size, time_slice)
+def multiprogrammedWorstChoice(job_mix, memory_size = 120e3, time_slice = 0.1, n = 10):
+    system = SystemMultiprogrammedWorstChoice(memory_size, time_slice, n)
     eventEngine(job_mix, system)
 
 
@@ -68,7 +68,6 @@ def jobMix3():
     j4 = Job("4", 10.5, 30, 0.4)
     j5 = Job("5", 10.8, 100, 0.1)
 
-
     job_mix = JobMix()
     job_mix.append(j1)
     job_mix.append(j2)
@@ -95,6 +94,7 @@ def eventEngine(job_mix, system, event_queue = EventQueue()):
         # Send next event to the system
         event = event_queue.getNextEvent()
         new_events = system.receiveEvent(event)
+        print(new_events)
 
         for new_event in new_events:
             # If the new event is "stop", stop the simulation
@@ -104,8 +104,13 @@ def eventEngine(job_mix, system, event_queue = EventQueue()):
             # If there is a new event, add it to the queue
             if new_event != None:
                 event_queue.addEvent(new_event)
+        
+        print("WAIT LIST [")
+        for job in system.wait_list:
+            job.print()
+        print("]")
 
-
+        
         system.memory.print()
 
         system.cpu.print()
@@ -115,7 +120,7 @@ def eventEngine(job_mix, system, event_queue = EventQueue()):
 
 def main():
     job_mix = jobMix3()
-    multiprogrammedFirstChoice(job_mix, time_slice=0.03)
+    multiprogrammedFirstChoice(job_mix, time_slice = 0.03, n = 2)
 
 
 if __name__ == "__main__":

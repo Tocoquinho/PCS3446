@@ -113,12 +113,19 @@ class Memory:
 
 
 class MemoryMultiprogrammed(Memory):
+    def __init__(self, memory_size, n):
+        super().__init__(memory_size)
+        self.n = n
+
+
     def isAvailable(self, job):
         """
-        Checks if there is an empty partition in memory that fits the job
+        Checks if there is an empty partition in memory that fits the job.
+        Also checks if it is allowed by the multiprogrammed level.
         """
         if self.firstChoice(job.memory) != -1:
-            return True
+            if not self.isFull():
+                return True
         return False
 
 
@@ -131,6 +138,20 @@ class MemoryMultiprogrammed(Memory):
             if partition.job == None and partition.size >= size:
                 return i
         return -1
+
+
+    def isFull(self):
+        """
+        Checks if the multiprogrammed level is already satisfied.
+        """
+        job_counter = 0
+        for partition in self.partitions:
+            if partition.job != None:
+                job_counter += 1
+                if job_counter >= self.n:
+                    return True
+
+        return False
 
 
 class MemoryMultiprogrammedFirstChoice(MemoryMultiprogrammed):
