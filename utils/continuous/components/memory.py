@@ -227,33 +227,3 @@ class MemoryMultiprogrammedBestChoice(MemoryMultiprogrammed):
                     smallest = partition.size
                     index = i
         return index
-
-
-if __name__ == "__main__":
-    import sys
-    sys.path.insert(0, "..")
-
-    from job import Job
-
-
-    j1 = Job("1", 20, 30e3, 60)
-    j2 = Job("2", 30, 100e3, 120)
-    j3 = Job("3", 40, 80e3, 80)
-    j4 = Job("4", 50, 40e3, 40)
-
-    mem = Memory(80e3)
-
-    mem.print()
-    mem.allocate(j1)
-    mem.print()
-
-    mem.allocate(j2)
-    mem.print()
-
-    mem.free()
-
-    mem.print()
-
-    mem.allocate(j2)
-    mem.print()
-
