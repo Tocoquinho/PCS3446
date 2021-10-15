@@ -18,6 +18,10 @@ class Memory:
     def __init__(self, memory_size):
         self.size = memory_size
         self.partitions = [Partition(0, memory_size)]
+        self.occupation_percentage = 0
+
+        self.allocations_accepted = 0
+        self.allocations_denied = 0
         
 
     def isAvailable(self, job = None):
@@ -52,8 +56,13 @@ class Memory:
         base = empty_partition.base
 
         # Create the new partition with the job
-        new_partition = Partition(base, job.memory, job)
+        new_partition = Partition(base, job.size, job)
         self.partitions.append(new_partition)
+
+        # Update the job memory metrics
+        job.memory = new_partition
+        job.memory_percentage = job.size/self.size * 100
+        self.occupation_percentage += job.memory_percentage
 
         # Check if there will be a new empty partition
         size = empty_partition.size - new_partition.size
@@ -63,7 +72,7 @@ class Memory:
             self.partitions.append(empty_partition)        
     
 
-    def free(self, job_name):
+    def free(self, job):
         """
         Frees the memory, deleting the referenced job of the allocation list (partitions)
         """
@@ -71,12 +80,17 @@ class Memory:
         i = -1
         for index, partition in enumerate(self.partitions):
             if partition.job != None:
-                if partition.job.name == job_name:
+                if partition.job.name == job.name:
                     i = index
                     break
         
         # Free the partition
         self.partitions[i].job = None
+        job.memory = None
+
+        # Update job memory metrics
+        self.occupation_percentage -= job.memory_percentage
+        job.memory_percentage = 0
 
         # Check if the left partition is a hole
         if i > 0:
@@ -123,7 +137,7 @@ class MemoryMultiprogrammed(Memory):
         Checks if there is an empty partition in memory that fits the job.
         Also checks if it is allowed by the multiprogrammed level.
         """
-        if self.firstChoice(job.memory) != -1:
+        if self.firstChoice(job.size) != -1:
             if not self.isFull():
                 return True
         return False
@@ -159,7 +173,7 @@ class MemoryMultiprogrammedFirstChoice(MemoryMultiprogrammed):
         """
         Gets a job and allocates it inside the memory
         """
-        i = self.firstChoice(job.memory)
+        i = self.firstChoice(job.size)
         self.splitEmptyPartition(i, job)
 
 
@@ -168,7 +182,7 @@ class MemoryMultiprogrammedWorstChoice(MemoryMultiprogrammed):
         """
         Gets a job and allocates it inside the memory
         """
-        i = self.worstChoice(job.memory)
+        i = self.worstChoice(job.size)
         self.splitEmptyPartition(i, job)
     
 
@@ -194,7 +208,7 @@ class MemoryMultiprogrammedBestChoice(MemoryMultiprogrammed):
         """
         Gets a job and allocates it inside the memory
         """
-        i = self.bestChoice(job.memory)
+        i = self.bestChoice(job.size)
         self.splitEmptyPartition(i, job)
     
 

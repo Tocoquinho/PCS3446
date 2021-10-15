@@ -46,8 +46,14 @@ class CPU:
 class CPUMultiprogrammed(CPU):
     def __init__(self, time_slice):
         super().__init__()
-        self.time_slice = time_slice
-        self.wait_list = []
+        self.time_slice = time_slice # Quantum of time
+        self.ready_list = [] # List of jobs in the execution circular list
+
+        # Simulation Metrics
+        self.n_time_stamps = [[0, 0]] # Time stamps containing the multiprogrammed level
+
+        # Post Simulation Metrics
+        self.mean_n = 0.0
 
 
     def allocate(self, job):
@@ -59,14 +65,14 @@ class CPUMultiprogrammed(CPU):
             self.current_job = job
             return True
         
-        self.wait_list.append(job)
+        self.ready_list.append(job)
         return False
 
 
     def generateTimeSlice(self):
         """
-        Calculates the time slice. 
-        It is the minimum between the configured time slice and the remaining execution time of the current job
+        Calculates the time slice. It is the minimum between the configured time slice 
+        and the remaining execution time of the current job.
         """
         # Calculate the remaining execution time of the current job in the CPU
         remaining_time = self.current_job.duration - self.current_job.executed
@@ -87,11 +93,12 @@ class CPUMultiprogrammed(CPU):
             self.current_job.executed = round(self.current_job.executed + self.time_slice, 2)
 
             # Send the current job to the wait list
-            self.wait_list.append(self.current_job)
+            self.ready_list.append(self.current_job)
 
         # Get new current job
-        if len(self.wait_list) != 0:
-            self.current_job = self.wait_list.pop(0)
+        if len(self.ready_list) != 0:
+            self.current_job = self.ready_list.pop(0)
+            self.current_job.states["Execution"].append([self.time])
 
             # Check if the next time slice is the last for this job
             last_slice, switch_time = self.generateTimeSlice()
@@ -99,15 +106,22 @@ class CPUMultiprogrammed(CPU):
             return last_slice, switch_time
         return 0, 0
 
-    def print(self):
-        print(f"CPU (Time: {self.time})", end = " ")
 
-        print("[")
+    def updateNTimeStamp(self):
+        """
+        Update the multiprogrammed level time stamp, 
+        according to the number of jobs in the wait list + current job.
+        """
+        n = 0
         if self.current_job != None:
-            self.current_job.print()
-        print("]")
-        print(f"Wait list [")
-        for job in self.wait_list:
-            job.print()
-        print("]\n")
-        
+            n += 1
+        n += len(self.ready_list)
+        self.n_time_stamps.append([self.time, n])
+
+
+    def getMeanN(self):
+        total_n = 0
+        for time_stamp in self.n_time_stamps:
+            total_n += time_stamp[1]
+        self.mean_n = total_n / len(self.n_time_stamps)
+        return self.mean_n

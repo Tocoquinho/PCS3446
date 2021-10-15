@@ -6,31 +6,43 @@ from utils.continuous.system import SystemMultiprogrammedBestChoice, SystemMulti
 def fifoContinuous(job_mix, memory_size = 120e3):
     system = SystemFIFO(memory_size)
     eventEngine(job_mix, system)
+    job_mix.generateCSV(name = "fifo_continuous.csv")
+    system.plot(job_mix)
 
 
 def shortestContinuous(job_mix, memory_size = 120e3):
     system = SystemShortest(memory_size)
     eventEngine(job_mix, system)
+    job_mix.generateCSV(name = "shortest_continuous.csv")
+    system.plot(job_mix)
 
 
 def antecipatedContinuous(job_mix, memory_size = 120e3):
     system = SystemFIFO(memory_size)
     eventEngine(job_mix, system, EventQueueAntecipated())
+    job_mix.generateCSV(name = "antecipated_continuous.csv")
+    system.plot(job_mix)
 
 
 def multiprogrammedFirstChoice(job_mix, memory_size = 120e3, time_slice = 0.1, n = 10):
     system = SystemMultiprogrammedFirstChoice(memory_size, time_slice, n)
     eventEngine(job_mix, system)
+    job_mix.generateCSV(name = f"multiprogrammed_n{n}_quantum{time_slice}_first.csv")
+    system.plot(job_mix)
 
 
 def multiprogrammedBestChoice(job_mix, memory_size = 120e3, time_slice = 0.1, n = 10):
     system = SystemMultiprogrammedBestChoice(memory_size, time_slice, n)
     eventEngine(job_mix, system)
+    job_mix.generateCSV(name = f"multiprogrammed_n{n}_quantum{time_slice}_best.csv")
+    system.plot(job_mix)
 
 
 def multiprogrammedWorstChoice(job_mix, memory_size = 120e3, time_slice = 0.1, n = 10):
     system = SystemMultiprogrammedWorstChoice(memory_size, time_slice, n)
     eventEngine(job_mix, system)
+    job_mix.generateCSV(name = f"multiprogrammed_n{n}_quantum{time_slice}_worst.csv")
+    system.plot(job_mix)
 
 
 def jobMix1():
@@ -82,6 +94,9 @@ def eventEngine(job_mix, system, event_queue = EventQueue()):
     # Create event queue
     event_queue.mix2Queue(job_mix)
 
+    # Time slice counter (metrics)
+    slice_counter = 0
+
     # Start event engine
     print("Type enter to start the simulation: ")
     while not event_queue.isEmpty():
@@ -89,38 +104,37 @@ def eventEngine(job_mix, system, event_queue = EventQueue()):
         if(input() != ""):
             continue
         
-        event_queue.print()
-
         # Send next event to the system
         event = event_queue.getNextEvent()
         new_events = system.receiveEvent(event)
-        print(new_events)
 
         for new_event in new_events:
             # If the new event is "stop", stop the simulation
             if new_event == "stop":
                 break
 
+            # If the new event is "cpu time slice", add one to the counter
+            if new_event == "cpu time slice":
+                slice_counter += 1
+
             # If there is a new event, add it to the queue
             if new_event != None:
                 event_queue.addEvent(new_event)
-        
-        print("WAIT LIST [")
-        for job in system.wait_list:
-            job.print()
-        print("]")
 
-        
+        event_queue.print()
         system.memory.print()
-
         system.cpu.print()
-
+        print("\n\n")
+    
     job_mix.print()
-
+    
 
 def main():
-    job_mix = jobMix3()
-    multiprogrammedFirstChoice(job_mix, time_slice = 0.03, n = 2)
+    job_mix = jobMix1()
+    # multiprogrammedFirstChoice(job_mix)
+    multiprogrammedBestChoice(job_mix)
+    # fifoContinuous(job_mix)
+    # antecipatedContinuous(job_mix)
 
 
 if __name__ == "__main__":
