@@ -7,21 +7,21 @@ def fifoContinuous(job_mix, memory_size = 120e3):
     system = SystemFIFO(memory_size)
     eventEngine(job_mix, system)
     job_mix.generateCSV(name = "fifo_continuous.csv")
-    system.plot(job_mix)
+    system.plot(job_mix, False)
 
 
 def shortestContinuous(job_mix, memory_size = 120e3):
     system = SystemShortest(memory_size)
     eventEngine(job_mix, system)
     job_mix.generateCSV(name = "shortest_continuous.csv")
-    system.plot(job_mix)
+    system.plot(job_mix, False)
 
 
 def antecipatedContinuous(job_mix, memory_size = 120e3):
     system = SystemFIFO(memory_size)
     eventEngine(job_mix, system, EventQueueAntecipated())
     job_mix.generateCSV(name = "antecipated_continuous.csv")
-    system.plot(job_mix)
+    system.plot(job_mix, False)
 
 
 def multiprogrammedFirstChoice(job_mix, memory_size = 120e3, time_slice = 0.1, n = 10):
@@ -89,6 +89,33 @@ def jobMix3():
 
     return job_mix
 
+def jobMixToco(num):
+    if(num == 1):
+        j1 = Job("1", 77,  20e3, 397)
+        j2 = Job("2", 370, 40e3, 73)
+        j3 = Job("3", 77,  30e3, 38)
+        j4 = Job("4", 158, 35e3, 45)
+        j5 = Job("5", 83,  50e3, 388)
+        j6 = Job("6", 231, 10e3, 1)
+    if(num == 2):
+        j1 = Job("1", 10,  10, 397)
+        j2 = Job("2", 285, 10, 73)
+        j3 = Job("3", 177, 10, 38)
+        j4 = Job("4", 3,   10, 45)
+        j5 = Job("5", 17,  10, 388)
+        j6 = Job("6", 10,  10, 1)
+
+    job_mix = JobMix()
+    job_mix.append(j1)
+    job_mix.append(j2)
+    job_mix.append(j3)
+    job_mix.append(j4)
+    job_mix.append(j5)
+    job_mix.append(j6)
+
+    return job_mix
+
+
 
 def eventEngine(job_mix, system, event_queue = EventQueue()):
     # Create event queue
@@ -130,11 +157,14 @@ def eventEngine(job_mix, system, event_queue = EventQueue()):
     
 
 def main():
-    job_mix = jobMix1()
-    # multiprogrammedFirstChoice(job_mix)
-    multiprogrammedBestChoice(job_mix)
+    job_mix = jobMixToco(1)
+    # job_mix = jobMix1()
+    # multiprogrammedFirstChoice(job_mix, time_slice=5)
+    # multiprogrammedWorstChoice(job_mix, time_slice=5)
+    # multiprogrammedBestChoice(job_mix, time_slice=5)
     # fifoContinuous(job_mix)
-    # antecipatedContinuous(job_mix)
+    # shortestContinuous(job_mix)
+    antecipatedContinuous(job_mix)
 
 
 if __name__ == "__main__":

@@ -61,6 +61,7 @@ class Memory:
 
         # Update the job memory metrics
         job.memory = new_partition
+        job.memory_base = base
         job.memory_percentage = job.size/self.size * 100
         self.occupation_percentage += job.memory_percentage
 

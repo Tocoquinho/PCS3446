@@ -15,6 +15,7 @@ class Job:
                        "Done": -1}
 
         self.memory = None # Partition of memory occupied by the job
+        self.memory_base = 0 # Base of memory that was occupied by the job
         self.memory_percentage = 0 # Percentage of memory occupied by the job
 
         # Post Simulation Metrics
@@ -82,7 +83,7 @@ class Job:
 
     def print(self):
         print(f"    {self.name}: {self.arrival}, {self.size/1.0e3:.4}k, {self.duration}, {self.executed}, {self.turnaround}, {self.weighted_turnaround}")
-        print(f"    {self.states}")
+        # print(f"    {self.states}")
 
 
 class JobMix:
