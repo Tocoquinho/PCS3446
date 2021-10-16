@@ -9,6 +9,7 @@ import matplotlib
 matplotlib.use("pdf")
 import matplotlib.pyplot as plt
 import matplotlib.patheffects as pe
+from matplotlib.ticker import AutoMinorLocator
 
 class System:
     def __init__(self, memory_size):
@@ -144,6 +145,7 @@ class System:
         job_names = []
         job_arrivals = []
         job_execution_intervals = []
+        grid_intervals = [] # List of start and end points, sorted by time stamp
         # Prepare the list of each job to plot
         for job in job_mix.list:
             job_names.append(job.name)
@@ -153,8 +155,14 @@ class System:
             final = job.states["Done"]
             job_execution_intervals.append([start, final])
 
-        fig = plt.figure(figsize = (10, len(job_names) * 0.8))
+            grid_intervals.append([start, "start", int(job.name)]) # List: start time, kind, job name
+            grid_intervals.append([final, "final", int(job.name)])
+
+        fig = plt.figure(figsize = (20, len(job_names) * 0.8))
         ax = fig.add_subplot(1,1,1)
+
+        # Line parametrization
+        line_foreground_width = 20
 
         # Plot the execution intervals
         for i in range(len(job_names)):
@@ -167,6 +175,41 @@ class System:
             ax.scatter(job_execution_intervals[i][1], i, marker = "$↓$", s = 700, facecolor = "gold", 
                        edgecolors = "lightslategray", linewidths = 1, zorder = 10000)
 
+        # Plot the time stamps and grid separations
+        grid_intervals.sort(key = lambda c: c[0])
+        active_jobs = set() # Set of active jobs
+
+        for i in range(len(grid_intervals)-1):
+            # If a job started, add it to the active job's set
+            if grid_intervals[i][1] == 'start':
+                active_jobs.add(grid_intervals[i][2])
+            # Remove it when it ends.
+            else:
+                active_jobs.remove(grid_intervals[i][2])
+
+            job_counter = len(active_jobs)
+
+            interval_points = (grid_intervals[i][0], grid_intervals[i+1][0])
+
+            # Avoid plotting a 0 in cases where there is more than one job starting/ending.
+            if (interval_points[1] == interval_points[0]):
+                continue
+
+            interval_value = (interval_points[1]-interval_points[0])/job_counter
+            grid_x_pos = [np.mean(interval_points)] * job_counter
+            grid_y_pos = [int(job_name) - 1 for job_name in active_jobs]
+
+            print(f'Plotting {interval_value:.3f} for jobs {active_jobs}')
+            print(f'X positions = {grid_x_pos}')
+            print(f'Y positions = {grid_y_pos}')
+
+            for x, y in zip(grid_x_pos, grid_y_pos): 
+                ax.plot([interval_points[0], interval_points[0]], [y - line_foreground_width/100, y + line_foreground_width/100], color='gray', linewidth = 1)
+                ax.text(x, y, f"{interval_value:.2f}", ha = "center", va = "center")
+
+
+        ax.xaxis.set_minor_locator(AutoMinorLocator())
+        ax.xaxis.grid(which = "both")
         plt.yticks(list(range(len(job_names))), job_names)
         plt.ylim(bottom = -0.5, top = len(job_names) - 0.5)
         plt.savefig("plot.jpg")
