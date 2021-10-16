@@ -57,7 +57,7 @@ class Memory:
 
         # Create the new partition with the job
         new_partition = Partition(base, job.size, job)
-        self.partitions.append(new_partition)
+        self.partitions.insert(index, new_partition)
 
         # Update the job memory metrics
         job.memory = new_partition
@@ -69,7 +69,7 @@ class Memory:
         if size > 0:
             # Create the new empty partition
             empty_partition = Partition(new_partition.base + new_partition.size, size)
-            self.partitions.append(empty_partition)        
+            self.partitions.insert(index+1, empty_partition)        
     
 
     def free(self, job):
