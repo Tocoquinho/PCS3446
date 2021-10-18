@@ -119,6 +119,8 @@ class Memory:
 
         self.partitions.pop(i)
 
+    def getAcceptionRate(self):
+        return self.allocations_accepted/(self.allocations_accepted+self.allocations_denied)
     
     def print(self):
         print(f"Memory ({self.size/1e3:.4}k) [")

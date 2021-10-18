@@ -148,16 +148,14 @@ class JobMix:
 
         attributes = ["Job", "Chegada", "Início", "Término", "T", "W", 
                       "Intervalo de Permanência", "Tempo na fila de espera",
-                      "Tempo na ready list" , "Porcentagem na fila de espera",
-                      "Porcentagem na ready list", "\n"]
+                      "Tempo na ready list" , "\n"]
         
         with open(name, 'w') as file:
             file.write(",".join(attributes))
             for job in self.list:
                 data = [job.name, job.arrival, job.states["Joined"], job.states["Done"],
                         job.turnaround, job.weighted_turnaround, job.permanence_interval,
-                        job.total_time_wait_list, job.total_time_ready_list,
-                        job.percentage_wait_list, job.percentage_ready_list, "\n"]
+                        job.total_time_wait_list, job.total_time_ready_list, "\n"]
                 data = ",".join(list(map(str, data)))
                 file.write(data)
 
@@ -176,12 +174,6 @@ class JobMix:
             file.write(",".join(list(map(str, string))))
 
             string = ["Tempo médio na ready list", self.mean_time_ready_list, "\n"]
-            file.write(",".join(list(map(str, string))))
-            
-            string = ["Porcentagem de tempo na fila de espera", self.mean_percentage_wait_list, "\n"]
-            file.write(",".join(list(map(str, string))))
-
-            string = ["Porcentagem de tempo na ready list", self.mean_percentage_ready_list, "\n"]
             file.write(",".join(list(map(str, string))))
 
 

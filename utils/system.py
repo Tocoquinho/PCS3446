@@ -1,7 +1,7 @@
-from utils.continuous.components.memory import Memory, MemoryMultiprogrammedFirstChoice
-from utils.continuous.components.memory import MemoryMultiprogrammedBestChoice, MemoryMultiprogrammedWorstChoice
-from utils.continuous.components.cpu import CPU, CPUMultiprogrammed
-from utils.continuous.event import Event
+from utils.components.memory import Memory, MemoryMultiprogrammedFirstChoice
+from utils.components.memory import MemoryMultiprogrammedBestChoice, MemoryMultiprogrammedWorstChoice
+from utils.components.cpu import CPU, CPUMultiprogrammed
+from utils.event import Event
 
 import numpy as np
 
@@ -141,7 +141,7 @@ class System:
         return
 
 
-    def plot(self, job_mix, plot_grid = True):
+    def plot(self, job_mix, antecipated = False):
         job_names = []
         job_arrivals = []
         job_execution_intervals = []
@@ -162,9 +162,13 @@ class System:
             grid_intervals.append([start, "start", int(job.name)]) # List: start time, kind, job name
             grid_intervals.append([final, "final", int(job.name)])
 
-        fig = plt.figure(figsize = (20, len(job_names) * 0.8))
+        fig = plt.figure(figsize = (15, len(job_names) * 1))
         ax = fig.add_subplot(1,1,1)
         
+        plt.title(f"Execução dos Jobs")
+        plt.xlabel("Tempo")
+        plt.ylabel("Jobs")
+
         # Line parametrization
         line_foreground_width = 20
 
@@ -179,53 +183,58 @@ class System:
             ax.scatter(job_execution_intervals[i][1], i, marker = "$↓$", s = 700, facecolor = "gold", 
                        edgecolors = "lightslategray", linewidths = 1, zorder = 10000)
 
-        if(plot_grid):
-            # Plot the time stamps and grid separations
-            grid_intervals.sort(key = lambda c: c[0])
-            active_jobs = set() # Set of active jobs
+        
+        # Plot the time stamps and grid separations
+        grid_intervals.sort(key = lambda c: c[0])
+        active_jobs = set() # Set of active jobs
 
-            for i in range(len(grid_intervals)-1):
-                # If a job started, add it to the active job's set
-                if grid_intervals[i][1] == 'start':
-                    active_jobs.add(grid_intervals[i][2])
-                # Remove it when it ends.
-                else:
-                    active_jobs.remove(grid_intervals[i][2])
+        for i in range(len(grid_intervals)-1):
+            # If a job started, add it to the active job's set
+            if grid_intervals[i][1] == 'start':
+                active_jobs.add(grid_intervals[i][2])
+            # Remove it when it ends.
+            else:
+                active_jobs.remove(grid_intervals[i][2])
 
-                job_counter = len(active_jobs)
+            job_counter = len(active_jobs)
 
-                interval_points = (grid_intervals[i][0], grid_intervals[i+1][0])
+            interval_points = (grid_intervals[i][0], grid_intervals[i+1][0])
 
-                # Avoid plotting a 0 in cases where there is more than one job starting/ending.
-                if (interval_points[1] == interval_points[0]):
-                    continue
+            # Avoid plotting a 0 in cases where there is more than one job starting/ending.
+            if (interval_points[1] == interval_points[0]):
+                continue
 
+            if(antecipated):
+                interval_value = (interval_points[1]-interval_points[0])/1
+                grid_x_pos = [np.mean(interval_points)] * 1
+            else:
                 interval_value = (interval_points[1]-interval_points[0])/job_counter
                 grid_x_pos = [np.mean(interval_points)] * job_counter
-                grid_y_pos = [int(job_name) - 1 for job_name in active_jobs]
 
-                print(f'Plotting {interval_value:.3f} for jobs {active_jobs}')
-                print(f'X positions = {grid_x_pos}')
-                print(f'Y positions = {grid_y_pos}')
+            grid_y_pos = [int(job_name) - 1 for job_name in active_jobs]
 
-                for x, y in zip(grid_x_pos, grid_y_pos): 
-                    ax.plot([interval_points[0], interval_points[0]], [y - line_foreground_width/100, y + line_foreground_width/100], color='gray', linewidth = 1)
-                    ax.text(x, y, f"{interval_value:.2f}", ha = "center", va = "center")
+            for x, y in zip(grid_x_pos, grid_y_pos): 
+                ax.plot([interval_points[0], interval_points[0]], [y - line_foreground_width/100, y + line_foreground_width/100], color='gray', linewidth = 1)
+                ax.text(x, y, f"{interval_value:.2f}", ha = "center", va = "center")
 
 
             ax.xaxis.set_minor_locator(AutoMinorLocator())
             ax.xaxis.grid(which = "both")
             plt.yticks(list(range(len(job_names))), job_names)
+            plt.title(f"Execução dos Jobs\nGrau médio de N: {self.cpu.getMeanN():.3}")
 
         plt.ylim(bottom = -0.5, top = len(job_names) - 0.5)
         plt.savefig("execution.jpg")
 
         # Plot Memory
-        fig = plt.figure(figsize = (20, len(job_names) * 0.8))
+        fig = plt.figure(figsize = (15, len(job_names) * 1.2))
         ax = fig.add_subplot(1,1,1)
 
         end_time = max(job_execution_intervals, key=lambda c: c[:][1])[1] + 10
         plt.axis([0, end_time, 0, self.memory.size])
+        plt.title(f"Alocação de memória\nTaxa de alocação: {self.memory.getAcceptionRate()*100:.2f}%")
+        plt.xlabel("Tempo")
+        plt.ylabel("Tamanho da memória (bytes)")
 
         for i in range(len(job_names)):
             x = job_execution_intervals[i][0]

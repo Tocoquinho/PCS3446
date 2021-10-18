@@ -1,27 +1,27 @@
 from utils.job import Job, JobMix
-from utils.continuous.event import EventQueue, EventQueueAntecipated
-from utils.continuous.system import SystemFIFO, SystemShortest, SystemMultiprogrammedFirstChoice
-from utils.continuous.system import SystemMultiprogrammedBestChoice, SystemMultiprogrammedWorstChoice
+from utils.event import EventQueue, EventQueueAntecipated
+from utils.system import SystemFIFO, SystemShortest, SystemMultiprogrammedFirstChoice
+from utils.system import SystemMultiprogrammedBestChoice, SystemMultiprogrammedWorstChoice
 
 def fifoContinuous(job_mix, memory_size = 120e3):
     system = SystemFIFO(memory_size)
     eventEngine(job_mix, system)
     job_mix.generateCSV(name = "fifo_continuous.csv")
-    system.plot(job_mix, False)
+    system.plot(job_mix)
 
 
 def shortestContinuous(job_mix, memory_size = 120e3):
     system = SystemShortest(memory_size)
     eventEngine(job_mix, system)
     job_mix.generateCSV(name = "shortest_continuous.csv")
-    system.plot(job_mix, False)
+    system.plot(job_mix)
 
 
 def antecipatedContinuous(job_mix, memory_size = 120e3):
     system = SystemFIFO(memory_size)
     eventEngine(job_mix, system, EventQueueAntecipated())
     job_mix.generateCSV(name = "antecipated_continuous.csv")
-    system.plot(job_mix, False)
+    system.plot(job_mix, antecipated=True)
 
 
 def multiprogrammedFirstChoice(job_mix, memory_size = 120e3, time_slice = 0.1, n = 10):
@@ -46,39 +46,24 @@ def multiprogrammedWorstChoice(job_mix, memory_size = 120e3, time_slice = 0.1, n
 
 
 def jobMix1():
-    j1 = Job("1", 20, 30e3, 60)
-    j2 = Job("2", 30, 100e3, 120)
-    j3 = Job("3", 40, 80e3, 80)
-    j4 = Job("4", 50, 40e3, 40)
+    j1 = Job("1", 10.00, 30e3, 1.999)
+    j2 = Job("2", 10.10, 40e3, 0.999)
+    j3 = Job("3", 10.25, 50e3, 0.24999)
 
     job_mix = JobMix()
     job_mix.append(j1)
     job_mix.append(j2)
     job_mix.append(j3)
-    job_mix.append(j4)
 
     return job_mix
 
 
 def jobMix2():
-    j1 = Job("1", 10.00, 30e3, 2)
-    j2 = Job("2", 10.10, 40e3, 1)
-    j3 = Job("3", 10.25, 50e3, 0.25)
-
-    job_mix = JobMix()
-    job_mix.append(j1)
-    job_mix.append(j2)
-    job_mix.append(j3)
-
-    return job_mix
-
-
-def jobMix3():
-    j1 = Job("1", 10.0, 30, 0.3)
-    j2 = Job("2", 10.2, 100, 0.5)
-    j3 = Job("3", 10.4, 80, 0.1)
-    j4 = Job("4", 10.5, 30, 0.4)
-    j5 = Job("5", 10.8, 100, 0.1)
+    j1 = Job("1", 10.0, 30e3, 0.3)
+    j2 = Job("2", 10.2, 80e3, 0.5)
+    j3 = Job("3", 10.4000001, 20e3, 0.1)
+    j4 = Job("4", 10.5, 35e3, 0.4)
+    j5 = Job("5", 10.8, 25e3, 0.1)
 
     job_mix = JobMix()
     job_mix.append(j1)
@@ -89,21 +74,47 @@ def jobMix3():
 
     return job_mix
 
-def jobMixToco(num):
-    if(num == 1):
-        j1 = Job("1", 77,  20e3, 397)
-        j2 = Job("2", 370, 40e3, 73)
-        j3 = Job("3", 77,  30e3, 38)
-        j4 = Job("4", 158, 35e3, 45)
-        j5 = Job("5", 83,  50e3, 388)
-        j6 = Job("6", 231, 10e3, 1)
-    if(num == 2):
-        j1 = Job("1", 10,  10, 397)
-        j2 = Job("2", 285, 10, 73)
-        j3 = Job("3", 177, 10, 38)
-        j4 = Job("4", 3,   10, 45)
-        j5 = Job("5", 17,  10, 388)
-        j6 = Job("6", 10,  10, 1)
+def jobMix3():
+    j1 = Job("1", 10.0, 20e3, 0.1)
+    j2 = Job("2", 10.0, 20e3, 0.1)
+    j3 = Job("3", 10.0, 20e3, 0.1)
+    j4 = Job("4", 10.0, 20e3, 0.1)
+    j5 = Job("5", 10.0, 20e3, 0.1)
+
+    job_mix = JobMix()
+    job_mix.append(j1)
+    job_mix.append(j2)
+    job_mix.append(j3)
+    job_mix.append(j4)
+    job_mix.append(j5)
+
+    return job_mix
+
+def jobMix4():
+    j1 = Job("1", 77,  20e3, 397)
+    j2 = Job("2", 370, 40e3, 73)
+    j3 = Job("3", 77,  30e3, 38)
+    j4 = Job("4", 158, 35e3, 45)
+    j5 = Job("5", 83,  50e3, 388)
+    j6 = Job("6", 231, 10e3, 1)
+
+    job_mix = JobMix()
+    job_mix.append(j1)
+    job_mix.append(j2)
+    job_mix.append(j3)
+    job_mix.append(j4)
+    job_mix.append(j5)
+    job_mix.append(j6)
+
+    return job_mix
+
+def jobMix5():
+    j1 = Job("1", 10,  20e3, 397)
+    j2 = Job("2", 285, 35e3, 73)
+    j3 = Job("3", 177, 30e3, 38)
+    j4 = Job("4", 3,   35e3, 45)
+    j5 = Job("5", 17,  50e3, 388)
+    j6 = Job("6", 10,  10e3, 1)
 
     job_mix = JobMix()
     job_mix.append(j1)
@@ -116,6 +127,23 @@ def jobMixToco(num):
     return job_mix
 
 
+def jobMix6():
+    j1 = Job("1", 58,  20e3, 397)
+    j2 = Job("2", 58, 35e3, 73)
+    j3 = Job("3", 58, 30e3, 38)
+    j4 = Job("4", 58,   35e3, 45)
+    j5 = Job("5", 58,  50e3, 388)
+    j6 = Job("6", 58,  10e3, 1)
+
+    job_mix = JobMix()
+    job_mix.append(j1)
+    job_mix.append(j2)
+    job_mix.append(j3)
+    job_mix.append(j4)
+    job_mix.append(j5)
+    job_mix.append(j6)
+
+    return job_mix
 
 def eventEngine(job_mix, system, event_queue = EventQueue()):
     # Create event queue
@@ -157,14 +185,19 @@ def eventEngine(job_mix, system, event_queue = EventQueue()):
     
 
 def main():
-    job_mix = jobMixToco(1)
-    # job_mix = jobMix1()
-    # multiprogrammedFirstChoice(job_mix, time_slice=5)
-    # multiprogrammedWorstChoice(job_mix, time_slice=5)
-    # multiprogrammedBestChoice(job_mix, time_slice=5)
+    job_mix = jobMix1()
+    # job_mix = jobMix2()
+    # job_mix = jobMix3()
+    # job_mix = jobMix4()
+    # job_mix = jobMix5()
+    # job_mix = jobMix6()
+    
     # fifoContinuous(job_mix)
-    # shortestContinuous(job_mix)
+    shortestContinuous(job_mix)
     antecipatedContinuous(job_mix)
+    multiprogrammedFirstChoice(job_mix, memory_size=120e3, time_slice=1)
+    multiprogrammedWorstChoice(job_mix, memory_size=120e3, time_slice=1)
+    multiprogrammedBestChoice(job_mix, memory_size=120e3, time_slice=1)
 
 
 if __name__ == "__main__":
