@@ -218,11 +218,11 @@ class System:
                 ax.text(x, y, f"{interval_value:.2f}", ha = "center", va = "center")
 
 
+            # plt.title(f"Execução dos Jobs\nGrau médio de N: {self.cpu.getMeanN():.3}")
+
             ax.xaxis.set_minor_locator(AutoMinorLocator())
             ax.xaxis.grid(which = "both")
             plt.yticks(list(range(len(job_names))), job_names)
-            plt.title(f"Execução dos Jobs\nGrau médio de N: {self.cpu.getMeanN():.3}")
-
         plt.ylim(bottom = -0.5, top = len(job_names) - 0.5)
         plt.savefig("execution.jpg")
 
