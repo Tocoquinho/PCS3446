@@ -168,17 +168,18 @@ def eventEngine(job_mix, system, event_queue = EventQueue()):
             if new_event == "stop":
                 break
 
-            # If the new event is "cpu time slice", add one to the counter
-            if new_event == "cpu time slice":
-                slice_counter += 1
-
             # If there is a new event, add it to the queue
             if new_event != None:
+            # If the new event is "cpu time slice", add one to the counter
+                if new_event.kind == "cpu time slice":
+                slice_counter += 1
+
                 event_queue.addEvent(new_event)
 
         event_queue.print()
         system.memory.print()
         system.cpu.print()
+        print(f"slices = {slice_counter}")
         print("\n\n")
     
     job_mix.print()
