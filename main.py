@@ -192,12 +192,12 @@ def main():
     # job_mix = jobMix5()
     # job_mix = jobMix6()
     
-    # fifoContinuous(job_mix)
-    shortestContinuous(job_mix)
-    antecipatedContinuous(job_mix)
-    multiprogrammedFirstChoice(job_mix, memory_size=120e3, time_slice=1)
-    multiprogrammedWorstChoice(job_mix, memory_size=120e3, time_slice=1)
-    multiprogrammedBestChoice(job_mix, memory_size=120e3, time_slice=1)
+    fifoContinuous(job_mix)
+    # shortestContinuous(job_mix)
+    # antecipatedContinuous(job_mix)
+    # multiprogrammedFirstChoice(job_mix, memory_size=120e3, time_slice=1)
+    # multiprogrammedWorstChoice(job_mix, memory_size=120e3, time_slice=1)
+    # multiprogrammedBestChoice(job_mix, memory_size=120e3, time_slice=1)
 
 
 if __name__ == "__main__":
