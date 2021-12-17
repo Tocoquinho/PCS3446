@@ -186,6 +186,22 @@ def eventEngine(job_mix, system, event_queue = EventQueue()):
     
 
 def main():
+    create_file = 0
+    while(create_file not in("y", "Y", "yes", "Yes", "n", "N", "no", "No")):
+        create_file = input("Create a new file? (y/n) ")
+        if(create_file in ("y", "Y", "yes", "Yes")):
+            print("\nType 'eof' to finish the file")
+            file_txt = []
+            txt_input = ""
+            while(txt_input != "eof"):
+                file_txt.append(txt_input)
+                txt_input = input()
+        elif(create_file in ("n", "N", "no", "No")):
+            pass
+        else:
+            print("\nPlease type a valid answer!")
+
+
     job_mix = jobMix1()
     # job_mix = jobMix2()
     # job_mix = jobMix3()
