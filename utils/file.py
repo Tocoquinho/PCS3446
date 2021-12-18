@@ -7,6 +7,7 @@ class File:
 
         self.disk_partition = None
         self.disk_percentage = None
+        self.disk_base = 0
 
 
     def print(self):

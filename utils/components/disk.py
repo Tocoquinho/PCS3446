@@ -1,3 +1,5 @@
+import matplotlib.pyplot as plt
+
 class Partition:
     def __init__(self, base, size, file = None):
         self.file = file
@@ -67,6 +69,7 @@ class Disk:
         # Get the selected empty partition
         empty_partition = self.partitions.pop(index)
         base = empty_partition.base
+        file.disk_base = base
 
         # Create the new partition with the file
         new_partition = Partition(base, file.size, file)
@@ -170,3 +173,62 @@ class Disk:
         for partition in self.partitions:
             partition.print()
         print("]")
+
+    def plot(self, files):
+        # fig = plt.figure(figsize = (15, len(job_names) * 1.2))
+        fig = plt.figure(figsize = (15, 5 * 1.2))
+        ax = fig.add_subplot(1,1,1)
+
+        plt.xlabel("Tempo")
+        plt.ylabel("Tamanho do Disco (bytes)")
+        end_time = 0
+            
+        for file in files:
+            job_names = []
+            job_arrivals = []
+            job_execution_intervals = []
+            job_memory_size = []
+            job_memory_base = []
+
+            file_start = min(file.job_mix.list, key=lambda c: c.states["Joined"]).states["Joined"]
+            file_finish = max(file.job_mix.list, key=lambda c: c.states["Done"]).states["Done"]
+            file_execution_interval = [file_start, file_finish]
+
+            if file_finish > end_time:
+                end_time = file_finish
+
+            x = file_execution_interval[0]
+            y = file.disk_base
+            width = file_finish - file_start
+            height = file.size
+            rectangle = plt.Rectangle((x, y), width, height, fc='royalblue', ec='lightsteelblue')
+            print(x,y,width,height)
+            ax.add_patch(rectangle)
+
+            for job in file.job_mix.list:
+                job_names.append(job.name)
+                job_memory_size.append(job.size)
+                job_memory_base.append(job.memory_base)
+
+                start = job.states["Joined"]
+                final = job.states["Done"]
+                file_finish = final
+                job_execution_intervals.append([start, final])
+
+
+            for i in range(len(file.job_mix.list)):
+                x = job_execution_intervals[i][0]
+                y = job_memory_base[i] + file.disk_base
+                width = job_execution_intervals[i][1] - job_execution_intervals[i][0]
+                height = job_memory_size[i]
+
+                rectangle = plt.Rectangle((x, y), width, height, fc='lightskyblue', ec='lightslategray')
+                ax.add_patch(rectangle)
+
+                # Plot job names
+                ax.text(x + width/2, y + height/2, f"{job_names[i]}", size=15, ha = "center", va = "center")
+            
+        plt.axis([0, end_time + 10, 0, self.size])
+        # plt.title(f"Alocação de Disco\nTaxa de alocação: {self.getAcceptionRate()*100:.2f}%")
+
+        plt.savefig("disk.jpg")  
