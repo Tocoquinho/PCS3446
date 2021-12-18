@@ -204,21 +204,58 @@ def main():
             print("\nPlease type a valid answer!")
 
 
-    job_mix = jobMix1()
-    # job_mix = jobMix2()
-    # job_mix = jobMix3()
-    # job_mix = jobMix4()
-    # job_mix = jobMix5()
-    # job_mix = jobMix6()
+
+    job_mix_1 = jobMix1()
+    job_mix_2 = jobMix2()
+    job_mix_3 = jobMix3()
+    job_mix_4 = jobMix4()
+    job_mix_5 = jobMix5()
+    job_mix_6 = jobMix6()
     
-    fifoContinuous(job_mix)
+    # fifoContinuous(job_mix_1)
+    # fifoContinuous(job_mix_2)
+    # fifoContinuous(job_mix_3)
+    # fifoContinuous(job_mix_4)
+    # fifoContinuous(job_mix_5)
+    # fifoContinuous(job_mix_6)
     # shortestContinuous(job_mix)
     # antecipatedContinuous(job_mix)
-    # multiprogrammedFirstChoice(job_mix, memory_size=120e3, time_slice=1)
+    multiprogrammedFirstChoice(job_mix_4, memory_size=120e3, time_slice=1)
+    multiprogrammedFirstChoice(job_mix_5, memory_size=120e3, time_slice=1)
+    multiprogrammedFirstChoice(job_mix_6, memory_size=120e3, time_slice=1)
     # multiprogrammedWorstChoice(job_mix, memory_size=120e3, time_slice=1)
     # multiprogrammedBestChoice(job_mix, memory_size=120e3, time_slice=1)
 
 
+
+
+    disk = Disk(400e3)
+    files = []
+    file_1 = File("file 1", 125e3, job_mix_4)
+    file_2 = File("file 2", 125e3, job_mix_6)
+    file_3 = File("file 3", 125e3, job_mix_5)
+    # file_4 = File("file 4", 120e3, job_mix_6)
+    # file_5 = File("file 5", 120e3, job_mix_5)
+    files.append(file_1)
+    files.append(file_2)
+    files.append(file_3)
+    # files.append(file_4)
+    # files.append(file_5)
+
+    disk.print()
+
+    for file in files:
+        disk.allocate(file)
+    disk.print()
+
+    disk.free(file_2)
+    # disk.free(file_4)
+    disk.print()
+
+    # disk.reorganizeDisk()
+    # disk.print()
+
+    disk.plot(files)
 if __name__ == "__main__":
     main()
 
