@@ -1,5 +1,5 @@
 from os import read
-from utils.job import Job, JobMix
+from job import Job, JobMix
 
 class CommandMapper:
     def __init__(self, file):
