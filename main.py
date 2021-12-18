@@ -145,8 +145,10 @@ def jobMix6():
 
     return job_mix
 
-def eventEngine(job_mix, system, event_queue = EventQueue()):
+def eventEngine(job_mix, system, event_queue = None):
     # Create event queue
+    if event_queue == None:
+        event_queue = EventQueue()
     event_queue.mix2Queue(job_mix)
 
     # Time slice counter (metrics)
