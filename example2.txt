@@ -1,0 +1,85 @@
+# JOBMIX jobmix1
+# JOB job1
+
+# FILE inputs1.txt
+# DATA a b
+
+# IF a a_negativo,a_positivo,a_positivo
+
+# LABEL a_negativo
+# EXEC SUB a 0 a
+
+# LABEL a_positivo
+# IF b b_negativo,b_positivo,b_positivo
+
+# LABEL b_negativo
+# EXEC SUB b 0 b
+
+# LABEL b_positivo
+# SET t1 a
+# SET t2 b
+# EXEC SUB aux t1 t2
+# IF aux max_t2,max_t1,max_t1
+
+# LABEL max_t2
+# SET x t2
+# SET y t1
+# GOTO post_maxmin
+
+# LABEL max_t1
+# SET x t1
+# SET y t2
+
+# LABEL post_maxmin
+# EXEC DIV t3 x 8
+# EXEC DIV t4 y 2
+# EXEC SUB t5 x t3
+# EXEC ADD t6 t4 t5
+
+# EXEC SUB aux t6 x
+# IF aux max_x,max_t6,max_t6
+
+# LABEL max_x
+# SET t7 x
+# GOTO final
+
+# LABEL max_t6
+# SET t7 t6
+
+# LABEL final
+# SYSCALL result t7
+
+# ENDJOB job1
+# ENDMIX jobmix1
+
+# PROC ADD
+# DATA b c
+# SPEND 1
+# SET a b
+# INCR a c
+# RETURN a
+# ENDPROC ADD
+
+# PROC SUB
+# DATA b c
+# SPEND 1
+# SET a b
+# DECR a c
+# RETURN a
+# ENDPROC SUB
+
+# PROC MUL
+# DATA b c
+# SPEND 10
+# SET a b
+# MULT a c
+# RETURN a
+# ENDPROC MUL
+
+# PROC DIV
+# DATA b c
+# SPEND 20
+# SET a b
+# DIVI a c
+# RETURN a
+# ENDPROC DIV
