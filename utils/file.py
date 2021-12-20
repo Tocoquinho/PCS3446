@@ -1,9 +1,14 @@
 class File:
-    def __init__(self, name, size, job_mix = None):
+    def __init__(self, name, job_mix, size = 0):
         self.name = name
         self.job_mix = job_mix
-        self.size = size
         self.result = 0
+
+        # set file size based on jobs size
+        if size == 0:
+            for job in job_mix.list:
+                size += job.size
+        self.size = size
 
         self.disk_partition = None
         self.disk_percentage = None
