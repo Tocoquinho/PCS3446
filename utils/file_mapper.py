@@ -3,12 +3,17 @@ from utils.job import Job, JobMix
 import copy
 
 class FileMapper:
-    def __init__(self, file):
+    def __init__(self, file, disk):
+
+        file = [string for string in file if string != ""]
+
         self.file = file
+        self.disk = disk
         self.output = {
                         "SIZE": 0,
                         "JOB START": {},
-                        "JOB MIX": None, 
+                        "JOB MIX": None,
+                        "DATA": [],
                         "SYSTEM ARCHITECTURE": None,
                         "RESULT": {}
                       }
@@ -45,20 +50,23 @@ class FileMapper:
        
         while self.program_counter < len(self.file):
             command = self.file[self.program_counter]
-            instruction, parameters = self.translateInstruction(command)
 
-            # Understand the instruction
-            if instruction in self.open_scope_instructions:
-                self.scope_stack.append(parameters[0])
-                if instruction == "JOBMIX":
-                    job_mix_mapper = JobMixMapper(self.file, self.program_counter, self.scope_stack)
-                    job_mix_output, self.program_counter, self.scope_stack = job_mix_mapper.readInstructions()
-                    self.output["JOB MIX"] = job_mix_output["JOB MIX"]
-                    self.output["JOB START"] = job_mix_output["JOB START"]
-                    self.output["RESULT"] = job_mix_output["RESULT"]
+            # numeric input 
+            if command[0] != "#":
+                self.output["DATA"].append(float(command))
+
             else:
-                # TODO: think if the only instructions inside file are JOB MIXs
-                pass
+                instruction, parameters = self.translateInstruction(command)
+
+                # Understand the instruction
+                if instruction in self.open_scope_instructions:
+                    self.scope_stack.append(parameters[0])
+                    if instruction == "JOBMIX":
+                        job_mix_mapper = JobMixMapper(self.file, self.program_counter, self.scope_stack, self.disk)
+                        job_mix_output, self.program_counter, self.scope_stack = job_mix_mapper.readInstructions()
+                        self.output["JOB MIX"] = job_mix_output["JOB MIX"]
+                        self.output["JOB START"] = job_mix_output["JOB START"]
+                        self.output["RESULT"] = job_mix_output["RESULT"]
 
             self.program_counter += 1
 
@@ -68,7 +76,6 @@ class FileMapper:
         Gets a string "# Instruction Parameter1 Parameter2 ... ParameterN"
         and splits into instruction and [parameters]
         """
-
         # Split command into a instruction and [parameters]
         instruction = command.split(sep = " ", maxsplit = 2)[1]
         parameters = command.split(sep = " ")[2:]
@@ -77,8 +84,8 @@ class FileMapper:
 
 
 class JobMixMapper(FileMapper):
-    def __init__(self, file, program_counter, scope_stack):
-        super().__init__(file)
+    def __init__(self, file, program_counter, scope_stack, disk):
+        super().__init__(file, disk)
         self.program_counter = program_counter
         self.scope_stack = scope_stack
         self.name = self.scope_stack[-1]
@@ -104,7 +111,7 @@ class JobMixMapper(FileMapper):
                 self.scope_stack.append(parameters[0])
                 if instruction == "JOB":
                     self.output["JOB START"][parameters[0]] = sum([len(command) for command in self.file[:self.program_counter]])
-                    job_mapper = JobMapper(self.file, self.program_counter, self.scope_stack)
+                    job_mapper = JobMapper(self.file, self.program_counter, self.scope_stack, self.disk)
                     job_output, self.program_counter, self.scope_stack = job_mapper.readInstructions()
                     self.output["JOB MIX"].append(job_output["JOB"])
                     self.output["SIZE"] += job_output["SIZE"]
@@ -114,15 +121,12 @@ class JobMixMapper(FileMapper):
                 current_scope = self.scope_stack.pop()
                 if instruction == "ENDMIX" and self.name == current_scope:
                     return self.output, self.program_counter, self.scope_stack
-            else:
-                # TODO: think if the only instructions inside JOBMIX are JOBs
-                pass
 
             self.program_counter += 1
 
 class JobMapper(JobMixMapper):
-    def __init__(self, file, program_counter, scope_stack):
-        super().__init__(file, program_counter, scope_stack)
+    def __init__(self, file, program_counter, scope_stack, disk):
+        super().__init__(file, program_counter, scope_stack, disk)
         self.arrival = 0
         self.size = self.calculateJobSize()
         self.duration = 0
@@ -191,7 +195,7 @@ class JobMapper(JobMixMapper):
             if instruction in self.open_scope_instructions:
                 self.scope_stack.append(parameters[0])
                 if instruction == "EXEC":
-                    procedure_mapper = ProcedureMapper(self.file, self.program_counter, self.scope_stack, copy.deepcopy(self.attributes))
+                    procedure_mapper = ProcedureMapper(self.file, self.program_counter, self.scope_stack, copy.deepcopy(self.attributes), self.disk)
                     procedure_output, self.scope_stack, procedure_duration = procedure_mapper.readInstructions()
                     self.duration += procedure_duration
                     self.attributes["VARIABLES"][parameters[1]] = procedure_output["RETURN"]
@@ -208,15 +212,14 @@ class JobMapper(JobMixMapper):
                 self.program_counter = self.attributes["ENDPROCEDURES"][parameters[0]]
 
             elif instruction == "FILE":
-                # TODO: Create a function to fetch and read another file
-                # Temporary solution(
-                file_path = "../" + parameters[0] 
-                file = open(file_path, "r")
-                file = [line.rstrip() for line in file.readlines()]
-                file = [float(string) for string in file if string != ""]
-                self.attributes["BUFFER"] += file
-                # )Temporary solution
+                file_name = parameters[0] 
 
+                for partition in self.disk.partitions:
+                    if partition.file == None:
+                        continue
+                    if partition.file.name == file_name:
+                        self.attributes["BUFFER"] += partition.file.data
+                        
             elif instruction == "DATA":
                 self.instructionDATA(parameters)
 
@@ -318,12 +321,13 @@ class JobMapper(JobMixMapper):
         """
         self.output["JOB"] = Job(self.name, self.arrival, self.size, self.duration)
         self.output["SIZE"] = self.size
+        
         return self.output, self.program_counter, self.scope_stack
 
 
 class RepeatMapper(JobMapper):
-    def __init__(self, file, program_counter, scope_stack, attributes):
-        super().__init__(file, program_counter, scope_stack)
+    def __init__(self, file, program_counter, scope_stack, attributes, disk):
+        super().__init__(file, program_counter, scope_stack, disk)
         self.attributes = attributes
         self.program_counter = attributes["REPEATS"][self.name][0]
 
@@ -338,8 +342,8 @@ class RepeatMapper(JobMapper):
 
 
 class ProcedureMapper(JobMapper):
-    def __init__(self, file, program_counter, scope_stack, attributes):
-        super().__init__(file, program_counter, scope_stack)
+    def __init__(self, file, program_counter, scope_stack, attributes, disk):
+        super().__init__(file, program_counter, scope_stack, disk)
         _, self.inputs = self.translateInstruction(self.file[self.program_counter])
         self.attributes = attributes
         self.program_counter = attributes["PROCEDURES"][self.name]
@@ -375,16 +379,3 @@ class ProcedureMapper(JobMapper):
         Return the information generated by the procedure mapper
         """
         return self.output, self.scope_stack, self.duration
-
-
-if __name__ == "__main__":
-    file_path = "../example4.txt"
-    file = open(file_path, "r")
-    file = [line.rstrip() for line in file.readlines()]
-    file = [string for string in file if string != ""]
-
-    file_mapper = FileMapper(file)
-    file_mapper.readInstructions()
-    print(file_mapper.output)
-    for job in file_mapper.output["JOB MIX"].list:
-        print(job.name, job.arrival, job.size, job.duration)
