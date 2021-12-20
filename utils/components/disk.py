@@ -104,7 +104,7 @@ class Disk:
         return False    
     
 
-    def free(self, file):
+    def free(self, file_name):
         """
         Frees the disk, deleting the referenced file of the allocation list (partitions)
         """
@@ -112,13 +112,19 @@ class Disk:
         i = -1
         for index, partition in enumerate(self.partitions):
             if partition.file != None:
-                if partition.file.name == file.name:
-                    i = index
-                    break
-        
+                    if partition.file.name == file_name:
+                        i = index
+                        break
+
+        if i == -1:
+            print("A partição desejada não foi encontrada")
+            return
+
+        file = self.partitions[i].file
+
         # Free the partition
-        self.partitions[i].file = None
         file.disk_partition = None
+        self.partitions[i].file = None
 
         # Update file disk metrics
         self.occupation_percentage -= file.disk_percentage
@@ -151,7 +157,7 @@ class Disk:
             
         #Only add an empty partition if there is space remaining
         if(last_partition_ending != self.size):
-            new_partitions.append(Partition(last_partition_ending, self.size))
+            new_partitions.append(Partition(last_partition_ending, self.size - last_partition_ending))
         
         self.partitions = new_partitions
 
@@ -240,14 +246,16 @@ class Disk:
         ax = fig.add_subplot(1,1,1)
         ax.axes.yaxis.set_visible(False)
 
-        ticks_x = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/1e3))
+        ticks_x = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/1))
         ax.xaxis.set_major_formatter(ticks_x)
 
-        ax.xaxis.set_ticks(np.arange(0, self.size+1, 1e3))
+        ax.xaxis.set_ticks(np.arange(0, self.size+1, 500))
 
-        default_height = 1e3
+        max_size = 1e3
+        ax.axes.set_ylim(max_size)
+        default_height = max_size*0.95
 
-        plt.xlabel("Espaço em Disco (Kilo bytes)")
+        plt.xlabel("Espaço em Disco (bytes)")
 
         for partition in self.partitions:
             # Skip over empty partitions
@@ -259,27 +267,30 @@ class Disk:
             width = partition.size
             rectangle = plt.Rectangle((x, y), width, default_height, fc='lightsteelblue', ec='black')
             ax.add_patch(rectangle)
+            ax.text(x + width/2, y + default_height, f"{partition.file.name}", size=15, ha = "center", va = "bottom")
 
-            y_mult = 0.025
-            sep = 0.02
-            x_mult = 0.04
-            current_disk_index = x #+ partition.size * x_mult
-            job_amount = len(partition.file.job_mix.list) - 1
+            if partition.file.job_mix != None:
+                # x_mult = 0.04 
+                y_mult = 0.025 * 0.95
+                sep = 0.02
+                current_disk_index = x #+ partition.size * x_mult
+                job_amount = len(partition.file.job_mix.list) - 1
 
-            for job in partition.file.job_mix.list:
-                x = current_disk_index
-                y = default_height * y_mult
-                width = job.size * (1 - 2*x_mult - sep * job_amount)
-                height = default_height * (1 - 2*y_mult)
-                current_disk_index += width + partition.size * sep
+                for job in partition.file.job_mix.list:
+                    x = current_disk_index
+                    y = default_height * y_mult
+                    # width = job.size * (1 - 2*x_mult - sep * job_amount)
+                    width = job.size * (1 - sep * job_amount)
+                    height = default_height * (1 - 2*y_mult)
+                    current_disk_index += width + partition.size * sep
 
-                rectangle = plt.Rectangle((x, y), width, height, fc='red', ec='black')
-                ax.add_patch(rectangle)
+                    rectangle = plt.Rectangle((x, y), width, height, fc='red', ec='black')
+                    ax.add_patch(rectangle)
 
-                # Plot job names
-                ax.text(x + width/2, y + height/2, f"{job.name}", size=15, ha = "center", va = "center")
+                    # Plot job names
+                    ax.text(x + width/2, y + height/2, f"{job.name}", size=15, ha = "center", va = "center")
             
         plt.axis([0, self.size + 10, 0, 1e3])
-        plt.title(f"Alocação de Disco")
+        fig.suptitle("Alocação de Disco", fontsize = 30)
 
         plt.savefig("disk.jpg")  
