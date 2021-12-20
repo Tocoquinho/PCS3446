@@ -1,4 +1,6 @@
+from utils.file import File
 from utils.job import Job, JobMix
+from utils.components.disk import Disk
 from utils.file_mapper import FileMapper
 from utils.event import EventQueue, EventQueueAntecipated
 from utils.system import SystemFIFO, SystemShortest, SystemMultiprogrammedFirstChoice
@@ -57,7 +59,6 @@ def jobMix1():
     job_mix.append(j3)
 
     return job_mix
-
 
 def jobMix2():
     j1 = Job("1", 10.0, 30e3, 0.3)
@@ -127,7 +128,6 @@ def jobMix5():
 
     return job_mix
 
-
 def jobMix6():
     j1 = Job("1", 58,  20e3, 397)
     j2 = Job("2", 58, 35e3, 73)
@@ -175,7 +175,7 @@ def eventEngine(job_mix, system, event_queue = None):
             if new_event != None:
             # If the new event is "cpu time slice", add one to the counter
                 if new_event.kind == "cpu time slice":
-                slice_counter += 1
+                    slice_counter += 1
 
                 event_queue.addEvent(new_event)
 
@@ -186,26 +186,8 @@ def eventEngine(job_mix, system, event_queue = None):
         print("\n\n")
     
     job_mix.print()
-    
 
-def main():
-    create_file = 0
-    while(create_file not in("y", "Y", "yes", "Yes", "n", "N", "no", "No")):
-        create_file = input("Create a new file? (y/n) ")
-        if(create_file in ("y", "Y", "yes", "Yes")):
-            print("\nType 'eof' to finish the file")
-            file_txt = []
-            txt_input = ""
-            while(txt_input != "eof"):
-                file_txt.append(txt_input)
-                txt_input = input()
-        elif(create_file in ("n", "N", "no", "No")):
-            pass
-        else:
-            print("\nPlease type a valid answer!")
-
-
-
+def P1():
     job_mix_1 = jobMix1()
     job_mix_2 = jobMix2()
     job_mix_3 = jobMix3()
@@ -221,54 +203,79 @@ def main():
     # fifoContinuous(job_mix_6)
     # shortestContinuous(job_mix)
     # antecipatedContinuous(job_mix)
-    multiprogrammedFirstChoice(job_mix_4, memory_size=120e3, time_slice=1)
-    multiprogrammedFirstChoice(job_mix_5, memory_size=120e3, time_slice=1)
-    multiprogrammedFirstChoice(job_mix_6, memory_size=120e3, time_slice=1)
+    # multiprogrammedFirstChoice(job_mix_4, memory_size=120e3, time_slice=1)
+    # multiprogrammedFirstChoice(job_mix_5, memory_size=120e3, time_slice=1)
+    # multiprogrammedFirstChoice(job_mix_6, memory_size=120e3, time_slice=1)
     # multiprogrammedWorstChoice(job_mix, memory_size=120e3, time_slice=1)
     # multiprogrammedBestChoice(job_mix, memory_size=120e3, time_slice=1)
 
-    file_path = "example2.txt"
-    file = open(file_path, "r")
-    file = [line.rstrip() for line in file.readlines()]
-    file = [string for string in file if string != ""]
+def read_input(disk):
+    """
+    Reads a script written by the user in the terminal and transforms it into a file
+    """
+    file_name = input("Type the file name: ")
 
-    command_mapper = CommandMapper(file)
-    command_mapper.readFile()
-    for job in command_mapper.output["JOBMIX"].list:
-        print(job.name, job.arrival, job.size, job.duration)
+    file_commands = []
+    txt_input = ""
+    print("\nType 'eof' to finish the file")
+    while(txt_input != "eof"):
+        file_commands.append(txt_input)
+        txt_input = input()
 
-    file_txt = File("txt", command_mapper.output["JOBMIX"], command_mapper.output["SIZE"])
+    # Translate the instructions and create a file with it
+    file_mapper = FileMapper(file_commands, disk)
+    file_mapper.readInstructions()
+
+    total_size = 0
+    if file_mapper.output["JOB MIX"] != None:
+        for job in file_mapper.output["JOB MIX"].list:
+            total_size += job.size
+    file_size = max(total_size, file_mapper.output["SIZE"])
 
 
-    disk = Disk(10e3)
-    files = []
-    file_1 = File("file 1", job_mix_4)
-    file_2 = File("file 2", job_mix_6)
-    file_3 = File("file 3", job_mix_5)
-    file_4 = File("file 4", job_mix_2)
-    file_5 = File("file 5", job_mix_3)
-    files.append(file_txt)
-    # files.append(file_1)
-    # files.append(file_2)
-    # files.append(file_3)
-    # files.append(file_4)
-    # files.append(file_5)
+    return File(file_name, file_mapper.output["JOB MIX"], file_size, file_mapper.output["DATA"])
 
-    # disk.print()
+    
 
-    for file in files:
-        disk.allocate(file)
-    # disk.print()
+def main():
+    disk = Disk(3e3)
 
-    # disk.free(file_2)
-    # disk.free(file_3)
-    # disk.print()
+    # Create a file based on the user input
+    while(True):
+        create_file = input("Create a new file? (y/n) ")
+        if(create_file in ("y", "Y", "yes", "Yes")):
+            new_file = read_input(disk)
+            disk.allocate(new_file)
+
+        elif(create_file in ("n", "N", "no", "No")):
+            break
+
+        else:
+            print("\nPlease type a valid answer!")
+
+    # join all the jobs together for execution
+    job_mixes = JobMix()
+    for p in disk.partitions:
+        if p.file == None or p.file.job_mix == None:
+            continue
+        job_mixes.list += p.file.job_mix.list
+
+    # Execute the simulation
+    disk.print()
+    multiprogrammedFirstChoice(job_mixes, memory_size=2e3, time_slice=10)
+
+    disk.print()
+    # If you want to free some space and test garbage collection,  run the following code
+    file_to_remove = "inputs1.txt"
+    disk.free(file_to_remove)
+    disk.print()
+
+    disk.reorganizeDisk()
+    disk.print()
+
     disk.plot()
 
-    # disk.reorganizeDisk()
-    # disk.print()
 
-    disk.plot(files)
 if __name__ == "__main__":
     main()
 
