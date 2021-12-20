@@ -1,0 +1,21 @@
+# JOBMIX jobmix3
+
+# JOB job4
+# ARRIVAL 10
+# SIZE 200
+# DURATION 70
+# ENDJOB job4
+
+# JOB job5
+# ARRIVAL 20
+# SIZE 500
+# DURATION 90
+# ENDJOB job5
+
+# JOB job6
+# ARRIVAL 15
+# SIZE 600
+# DURATION 40
+# ENDJOB job6
+
+# ENDMIX jobmix3

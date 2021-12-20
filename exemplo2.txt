@@ -1,0 +1,58 @@
+# JOBMIX jobmix2
+# JOB job3
+# ARRIVAL 4
+
+# FILE inputs2.txt
+# DATA n
+
+# EXEC factorial ans n
+# SYSCALL result ans
+
+# PROC factorial
+# DATA a
+# SET aux a
+# REPEAT while_factorial
+# EXEC SUB aux aux 1
+# EXEC MUL a a aux
+# EXEC SUB tst aux 1
+# IF tst done,done,while_factorial
+# LABEL done
+# EXIT while_factorial
+# ENDREP while_factorial
+# RETURN a
+# ENDPROC factorial
+
+# ENDJOB job3
+# ENDMIX jobmix1
+
+# PROC ADD
+# DATA b c
+# SPEND 1
+# SET a b
+# INCR a c
+# RETURN a
+# ENDPROC ADD
+
+# PROC SUB
+# DATA b c
+# SPEND 1
+# SET a b
+# DECR a c
+# RETURN a
+# ENDPROC SUB
+
+# PROC MUL
+# DATA b c
+# SPEND 10
+# SET a b
+# MULT a c
+# RETURN a
+# ENDPROC MUL
+
+# PROC DIV
+# DATA b c
+# SPEND 20
+# SET a b
+# DIVI a c
+# RETURN a
+# ENDPROC DIV

@@ -1,5 +1,12 @@
 # JOBMIX jobmix1
+
 # JOB job1
+# ARRIVAL 30
+# SIZE 200
+# DURATION 300
+# ENDJOB job1
+
+# JOB job2
 
 # FILE inputs1.txt
 # DATA a b
@@ -49,7 +56,7 @@
 # LABEL final
 # SYSCALL result t7
 
-# ENDJOB job1
+# ENDJOB job2
 # ENDMIX jobmix1
 
 # PROC ADD
