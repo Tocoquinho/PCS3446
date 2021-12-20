@@ -1,4 +1,6 @@
+import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 
 class Partition:
     def __init__(self, base, size, file = None):
@@ -174,7 +176,7 @@ class Disk:
             partition.print()
         print("]")
 
-    def plot(self, files):
+    def plotFileControlBlock(self, files):
         # fig = plt.figure(figsize = (15, len(job_names) * 1.2))
         fig = plt.figure(figsize = (15, 5 * 1.2))
         ax = fig.add_subplot(1,1,1)
@@ -200,7 +202,7 @@ class Disk:
             x = file_execution_interval[0]
             y = file.disk_base
             width = file_finish - file_start
-            height = file.size
+            default_height = file.size
             rectangle = plt.Rectangle((x, y), width, height, fc='royalblue', ec='lightsteelblue')
             print(x,y,width,height)
             ax.add_patch(rectangle)
@@ -230,5 +232,54 @@ class Disk:
             
         plt.axis([0, end_time + 10, 0, self.size])
         # plt.title(f"Alocação de Disco\nTaxa de alocação: {self.getAcceptionRate()*100:.2f}%")
+
+        plt.savefig("file_control_block.jpg")  
+
+    def plot(self):
+        fig = plt.figure(figsize = (15, 6))
+        ax = fig.add_subplot(1,1,1)
+        ax.axes.yaxis.set_visible(False)
+
+        ticks_x = ticker.FuncFormatter(lambda x, pos: '{0:g}'.format(x/1e3))
+        ax.xaxis.set_major_formatter(ticks_x)
+
+        ax.xaxis.set_ticks(np.arange(0, self.size+1, 1e3))
+
+        default_height = 1e3
+
+        plt.xlabel("Espaço em Disco (Kilo bytes)")
+
+        for partition in self.partitions:
+            # Skip over empty partitions
+            if partition.file == None:
+                continue
+
+            x = partition.base
+            y = 0
+            width = partition.size
+            rectangle = plt.Rectangle((x, y), width, default_height, fc='lightsteelblue', ec='black')
+            ax.add_patch(rectangle)
+
+            y_mult = 0.025
+            sep = 0.02
+            x_mult = 0.04
+            current_disk_index = x #+ partition.size * x_mult
+            job_amount = len(partition.file.job_mix.list) - 1
+
+            for job in partition.file.job_mix.list:
+                x = current_disk_index
+                y = default_height * y_mult
+                width = job.size * (1 - 2*x_mult - sep * job_amount)
+                height = default_height * (1 - 2*y_mult)
+                current_disk_index += width + partition.size * sep
+
+                rectangle = plt.Rectangle((x, y), width, height, fc='red', ec='black')
+                ax.add_patch(rectangle)
+
+                # Plot job names
+                ax.text(x + width/2, y + height/2, f"{job.name}", size=15, ha = "center", va = "center")
+            
+        plt.axis([0, self.size + 10, 0, 1e3])
+        plt.title(f"Alocação de Disco")
 
         plt.savefig("disk.jpg")  

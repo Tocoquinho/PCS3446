@@ -227,31 +227,43 @@ def main():
     # multiprogrammedWorstChoice(job_mix, memory_size=120e3, time_slice=1)
     # multiprogrammedBestChoice(job_mix, memory_size=120e3, time_slice=1)
 
+    file_path = "example2.txt"
+    file = open(file_path, "r")
+    file = [line.rstrip() for line in file.readlines()]
+    file = [string for string in file if string != ""]
+
+    command_mapper = CommandMapper(file)
+    command_mapper.readFile()
+    for job in command_mapper.output["JOBMIX"].list:
+        print(job.name, job.arrival, job.size, job.duration)
+
+    file_txt = File("txt", command_mapper.output["JOBMIX"], command_mapper.output["SIZE"])
 
 
-
-    disk = Disk(400e3)
+    disk = Disk(10e3)
     files = []
-    file_1 = File("file 1", 125e3, job_mix_4)
-    file_2 = File("file 2", 125e3, job_mix_6)
-    file_3 = File("file 3", 125e3, job_mix_5)
-    # file_4 = File("file 4", 120e3, job_mix_6)
-    # file_5 = File("file 5", 120e3, job_mix_5)
-    files.append(file_1)
-    files.append(file_2)
-    files.append(file_3)
+    file_1 = File("file 1", job_mix_4)
+    file_2 = File("file 2", job_mix_6)
+    file_3 = File("file 3", job_mix_5)
+    file_4 = File("file 4", job_mix_2)
+    file_5 = File("file 5", job_mix_3)
+    files.append(file_txt)
+    # files.append(file_1)
+    # files.append(file_2)
+    # files.append(file_3)
     # files.append(file_4)
     # files.append(file_5)
 
-    disk.print()
+    # disk.print()
 
     for file in files:
         disk.allocate(file)
-    disk.print()
+    # disk.print()
 
-    disk.free(file_2)
-    # disk.free(file_4)
-    disk.print()
+    # disk.free(file_2)
+    # disk.free(file_3)
+    # disk.print()
+    disk.plot()
 
     # disk.reorganizeDisk()
     # disk.print()
