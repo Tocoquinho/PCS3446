@@ -159,10 +159,10 @@ class System:
             final = job.states["Done"]
             job_execution_intervals.append([start, final])
 
-            grid_intervals.append([start, "start", int(job.name)]) # List: start time, kind, job name
-            grid_intervals.append([final, "final", int(job.name)])
+            grid_intervals.append([start, "start", int(job.name[-1])]) # List: start time, kind, job name
+            grid_intervals.append([final, "final", int(job.name[-1])])
 
-        fig = plt.figure(figsize = (15, len(job_names) * 1))
+        fig = plt.figure(figsize = (15, 5))
         ax = fig.add_subplot(1,1,1)
         
         plt.title(f"Execução dos Jobs")
@@ -227,7 +227,7 @@ class System:
         plt.savefig("execution.jpg")
 
         # Plot Memory
-        fig = plt.figure(figsize = (15, len(job_names) * 1.2))
+        fig = plt.figure(figsize = (15, 5))
         ax = fig.add_subplot(1,1,1)
 
         end_time = max(job_execution_intervals, key=lambda c: c[:][1])[1] + 10
