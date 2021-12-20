@@ -1,4 +1,5 @@
 from utils.job import Job, JobMix
+from utils.file_mapper import FileMapper
 from utils.event import EventQueue, EventQueueAntecipated
 from utils.system import SystemFIFO, SystemShortest, SystemMultiprogrammedFirstChoice
 from utils.system import SystemMultiprogrammedBestChoice, SystemMultiprogrammedWorstChoice
